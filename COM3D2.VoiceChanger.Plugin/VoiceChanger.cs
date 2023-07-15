@@ -22,10 +22,16 @@ namespace COM3D2.VoiceChanger.Plugin
             inferClient.Callback += HandleVoice;
         }
 
-        public void LoadVoice(string voiceFileName, bool cancelAll = false)
+        public bool CheckPrepared(string voice)
+        {
+            string oggFileName = Path.ChangeExtension(voice, ".ogg").ToLower();
+            return cacheAudioClip.ContainsKey(oggFileName);
+        }
+
+        public void LoadVoice(string voice, bool cancelAll = false)
         {
             // TODO: Cancel all before
-            string oggFileName = Path.GetFileNameWithoutExtension(voiceFileName).ToLower() + ".ogg";
+            string oggFileName = Path.ChangeExtension(voice, ".ogg").ToLower();
             if (!voiceWait.Contains(oggFileName) && !cacheAudioClip.ContainsKey(oggFileName))
             {
                 inferClient.SendVoice(oggFileName);
@@ -33,16 +39,16 @@ namespace COM3D2.VoiceChanger.Plugin
             }
         }
 
-        public AudioClip getVoiceClip(string voiceFileName)
+        public AudioClip getVoiceClip(string voice, bool wait = true)
         {
-            string oggFileName = Path.GetFileNameWithoutExtension(voiceFileName).ToLower() + ".ogg";
+            string oggFileName = Path.GetFileNameWithoutExtension(voice).ToLower() + ".ogg";
             if (cacheAudioClip.TryGetValue(oggFileName, out AudioClip audioClip))
             {
                 return audioClip;
             }
             else if (voiceWait.Contains(oggFileName))
             {
-                while (!cacheAudioClip.ContainsKey(oggFileName))
+                while (!cacheAudioClip.ContainsKey(oggFileName) && wait)
                 {
                     Thread.Sleep(100);
                 }
@@ -57,6 +63,4 @@ namespace COM3D2.VoiceChanger.Plugin
             cacheAudioClip.Add(inferVoice.name, OGGParser.FromVoiceData(inferVoice));
         }
     }
-
-    
 }
