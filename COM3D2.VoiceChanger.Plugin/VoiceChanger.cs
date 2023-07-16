@@ -11,13 +11,13 @@ namespace COM3D2.VoiceChanger.Plugin
     {
         private const int cacheSize = 128;
         private CacheDictionary<string, AudioClip> cacheAudioClip;
-        private HashSet<string> voiceWait;
+        private CacheHashSet<string> voiceWait;
         private InferClient inferClient;
 
         public VoiceChanger()
         {
             cacheAudioClip = new CacheDictionary<string, AudioClip>(cacheSize);
-            voiceWait = new HashSet<string>();
+            voiceWait = new CacheHashSet<string>();
             inferClient = new InferClient();
             inferClient.Callback += HandleVoice;
         }
@@ -26,6 +26,27 @@ namespace COM3D2.VoiceChanger.Plugin
         {
             string oggFileName = Path.ChangeExtension(voice, ".ogg").ToLower();
             return cacheAudioClip.ContainsKey(oggFileName);
+        }
+
+        public void Clear()
+        {
+            ClearWait();
+            ClearCache();
+        }
+
+        public void ClearWait()
+        {
+            voiceWait.Clear();
+        }
+
+        public void ClearCache()
+        {
+            cacheAudioClip.Clear();
+        }
+
+        public void SetServerUrl(string url)
+        {
+            inferClient.SetServerUrl(url);
         }
 
         public void LoadVoice(string voice, bool cancelAll = false)
@@ -59,8 +80,10 @@ namespace COM3D2.VoiceChanger.Plugin
 
         private void HandleVoice(Voice_Data inferVoice)
         {
-            voiceWait.Remove(inferVoice.name);
-            cacheAudioClip.Add(inferVoice.name, OGGParser.FromVoiceData(inferVoice));
+            if (voiceWait.Remove(inferVoice.name))
+            {
+                cacheAudioClip.Add(inferVoice.name, OGGParser.FromVoiceData(inferVoice));
+            }
         }
     }
 }

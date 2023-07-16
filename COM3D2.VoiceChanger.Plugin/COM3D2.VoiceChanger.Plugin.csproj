@@ -89,6 +89,8 @@
     <ReferencePath>$(ReferencePath);$(COM3D2InstallPath)\Sybaris\UnityInjector</ReferencePath>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Utils\CacheHashSet.cs" />
+    <Compile Include="VoiceChangerConfig.cs" />
     <Compile Include="Infer\InferClient.cs" />
     <Compile Include="Infer\WSConnection.cs" />
     <Compile Include="Utils\OGGParser.cs" />

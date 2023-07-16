@@ -13,8 +13,13 @@ namespace COM3D2.VoiceChanger.Plugin.Infer
 
         public InferClient()
         {
-            _connection = new WSConnection("ws://127.0.0.1:11451/infer/ws");
+            _connection = new WSConnection("");
             _connection.Callback += ReceiveCallback;
+        }
+
+        public void SetServerUrl(string url)
+        {
+            _connection.url = url;
         }
 
         public void SendVoice(string voice)

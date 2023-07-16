@@ -49,6 +49,10 @@ namespace COM3D2.VoiceChanger.Plugin.Infer
 
         private void Connect(string url)
         {
+            if (!url.ToLower().StartsWith("ws://"))
+            {
+                return;
+            }
             ws = new WebSocket(url);
             ws.OnOpen += (sender, e) =>
             {

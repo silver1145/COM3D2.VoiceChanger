@@ -24,12 +24,13 @@ namespace COM3D2.VoiceChanger.Plugin
 
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
     public sealed class Main : BaseUnityPlugin
-	{
-		public static Main Instance { get; private set; }
+    {
+        public static Main Instance { get; private set; }
         private ManualLogSource _Logger => base.Logger;
         internal static new ManualLogSource Logger => Instance?._Logger;
-        internal static ConfigEntry<bool> voiceChangerConfig;
         internal static VoiceChanger voiceChanger = new();
+
+        // current wait
         internal static string curVoice = null;
         internal static BaseKagManager.ExecWaitData curWaitData = null;
         internal static bool curPrepared => voiceChanger.CheckPrepared(curVoice);
@@ -38,26 +39,32 @@ namespace COM3D2.VoiceChanger.Plugin
             curWaitData != null &&
             (!curWaitData.use || curWaitData.wait_time <= GameMain.tick_count - curWaitData.start_tick_count)
         );
-        // TODO: Config
-        internal static int timeout = 10000;
-        internal static bool no_wait = false;
+
+        //config
+        internal static VoiceChangerConfig vcConfig;
+        internal static int timeout => vcConfig.inferTimeout.Value;
+        internal static bool noWait => vcConfig.noWait.Value;
+        internal static bool enableVoice => vcConfig.enableVoice.Value;
+        internal static bool enableSe => vcConfig.enableSe.Value;
 
         private void Awake()
         {
+            vcConfig = new(Config);
+            voiceChanger.SetServerUrl(vcConfig.serverUrl.Value);
+            vcConfig.serverUrl.SettingChanged += (s, e) => voiceChanger.SetServerUrl(vcConfig.serverUrl.Value);
             Instance = this;
-            voiceChangerConfig = Config.Bind("Section", "Test_Name", false, "Description");
             Harmony.CreateAndPatchAll(typeof(Main));
         }
 
         private void Update()
         {
             // Wait Check per 100 ms, Cannot Work lower than 10 FPS
-            if (!no_wait && isWait)
+            if (!noWait && isWait)
             {
                 int left_time = curWaitData.wait_time - GameMain.tick_count + curWaitData.start_tick_count;
                 if (left_time < 150)
                 {
-                    if (curPrepared)
+                    if (curPrepared || (timeout > 0 && curWaitData.wait_time > timeout))
                     {
                         curWaitData.wait_time = 0;
                         curWaitData.use = false;
@@ -75,9 +82,8 @@ namespace COM3D2.VoiceChanger.Plugin
         [HarmonyPrefix]
         public static bool LoadPlayPrefix(ref AudioSourceMgr __instance, ref bool __result, AFileSystemBase fileSystem, string fileName, bool stream)
         {
-            var voiceType = __instance.m_eType;
-            // TODO: Filter
-            var audioClip = voiceChanger.getVoiceClip(fileName, !no_wait);
+            // var voiceType = __instance.m_eType;
+            var audioClip = voiceChanger.getVoiceClip(fileName, !noWait);
             if (audioClip != null)
             {
                 Logger.LogDebug($"replace: {fileName}");
@@ -97,7 +103,7 @@ namespace COM3D2.VoiceChanger.Plugin
         public static void TagTalkPrefix(KagTagSupport tag_data)
         {
             string voice = tag_data.GetTagProperty("voice").AsString();
-            if (!voice.IsNullOrWhiteSpace())
+            if (!voice.IsNullOrWhiteSpace() && enableVoice)
             {
                 voiceChanger.LoadVoice(voice);
                 Logger.LogDebug($"@talk voice={voice}");
@@ -121,7 +127,7 @@ namespace COM3D2.VoiceChanger.Plugin
         public static void TagTalkPostfix(KagTagSupport tag_data, ref ADVKagManager __instance, ref bool __result)
         {
             string voice = tag_data.GetTagProperty("voice").AsString();
-            if (!voice.IsNullOrWhiteSpace() && !no_wait)
+            if (!voice.IsNullOrWhiteSpace() && enableVoice && !noWait)
             {
                 string oggFileName = Path.GetFileNameWithoutExtension(voice).ToLower() + ".ogg";
                 if (GameUty.FileSystem.IsExistentFile(oggFileName))
@@ -138,7 +144,7 @@ namespace COM3D2.VoiceChanger.Plugin
         public static void TagPlayVoicePrefix(KagTagSupport tag_data)
         {
             string voice = tag_data.GetTagProperty("voice").AsString();
-            if (!voice.IsNullOrWhiteSpace())
+            if (!voice.IsNullOrWhiteSpace() && enableVoice)
             {
                 voiceChanger.LoadVoice(voice);
                 Logger.LogDebug($"@playvoice voice={voice}");
@@ -150,7 +156,7 @@ namespace COM3D2.VoiceChanger.Plugin
         public static void TagPlaySePrefix(KagTagSupport tag_data)
         {
             string file = tag_data.GetTagProperty("file").AsString();
-            if (!file.IsNullOrWhiteSpace())
+            if (!file.IsNullOrWhiteSpace() && enableSe)
             {
                 voiceChanger.LoadVoice(file);
                 Logger.LogDebug($"@playse file={file}");
