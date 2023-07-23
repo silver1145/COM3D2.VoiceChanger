@@ -4,17 +4,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using static VRFaceShortcutConfig;
 
 namespace COM3D2.VoiceChanger.Plugin.Utils
 {
+    /// <summary>
+    /// Ordered Thread-safe HashSet
+    /// <para>The earliest element will be discarded When exceeding maxLength (>0)</para>
+    /// <para>Add existing element will move to the end</para>
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class CacheHashSet<T> : IEnumerable<T>
     {
+        private readonly int maxLength;
         private readonly HashSet<T> hashSet;
         private readonly Queue<T> queue;
         private readonly ReaderWriterLockSlim lockSlim;
 
-        public CacheHashSet()
+        public CacheHashSet(int maxLength = 0)
         {
+            this.maxLength = maxLength;
             hashSet = new HashSet<T>();
             queue = new Queue<T>();
             lockSlim = new ReaderWriterLockSlim();
@@ -25,6 +34,11 @@ namespace COM3D2.VoiceChanger.Plugin.Utils
             lockSlim.EnterWriteLock();
             try
             {
+                if (maxLength > 0 && hashSet.Count >= maxLength && !hashSet.Contains(item))
+                {
+                    var oldestItem = queue.Dequeue();
+                    hashSet.Remove(oldestItem);
+                }
                 if (hashSet.Contains(item))
                 {
                     var existingItem = queue.FirstOrDefault(x => EqualityComparer<T>.Default.Equals(x, item));
@@ -88,6 +102,19 @@ namespace COM3D2.VoiceChanger.Plugin.Utils
             finally
             {
                 lockSlim.ExitWriteLock();
+            }
+        }
+
+        public bool Any()
+        {
+            lockSlim.EnterReadLock();
+            try
+            {
+                return hashSet.Any();
+            }
+            finally
+            {
+                lockSlim.ExitReadLock();
             }
         }
 

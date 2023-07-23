@@ -1,51 +1,64 @@
 ﻿using COM3D2.VoiceChanger.Plugin.Utils;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using static PrivateMaidTouchManager;
 
 namespace COM3D2.VoiceChanger.Plugin.Infer
 {
-    public delegate void VoiceReceiveCallback(Voice_Data data);
+    internal delegate void VoiceReceiveCallback(Voice_Data data);
 
     internal class InferClient
     {
-        private WSConnection _connection;
+        private WSConnection wsConnection;
         public event VoiceReceiveCallback Callback;
 
         public InferClient()
         {
-            _connection = new WSConnection("");
-            _connection.Callback += ReceiveCallback;
+            wsConnection = new WSConnection("");
+            wsConnection.Callback += ReceiveCallback;
         }
 
         public void SetServerUrl(string url)
         {
-            _connection.url = url;
+            wsConnection.url = url;
         }
 
         public void SendVoice(string voice)
         {
             if (GameUty.FileSystem.IsExistentFile(voice))
             {
-                var f = GameUty.FileOpen(voice);
-                string base64File = Convert.ToBase64String(f.ReadAll());
-                Voice_Data voiceData = new(voice, base64File);
-                _connection.Send(voiceData);
+                Voice_Data voiceData = new(voice);
+                Send(voiceData);
             }
         }
 
         public void SendCommand(string command, Dictionary<string, string> data = null)
         {
-            if (data == null)
-            {
-                data = new Dictionary<string, string>();
-            }
+            Command_Data commandData = new Command_Data(command, data);
+            Send(commandData);
+        }
 
+        public void Send(Base_Data data)
+        {
+            lock (wsConnection)
+            {
+                wsConnection.Send(data);
+            }
+        }
+
+        public void Send(List<Base_Data> data)
+        {
+            lock (wsConnection)
+            {
+                wsConnection.Send(data);
+            }
         }
 
         private void ReceiveCallback(Voice_Data voice)
         {
             Callback?.Invoke(voice);
         }
-
     }
 }

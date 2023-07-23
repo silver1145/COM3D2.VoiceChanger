@@ -6,7 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
-
+using UnityEngine;
 
 [assembly: AssemblyVersion(COM3D2.VoiceChanger.Plugin.PluginInfo.PLUGIN_VERSION + ".*")]
 [module: UnverifiableCode]
@@ -43,15 +43,17 @@ namespace COM3D2.VoiceChanger.Plugin
         //config
         internal static VoiceChangerConfig vcConfig;
         internal static int timeout => vcConfig.inferTimeout.Value;
-        internal static bool noWait => vcConfig.noWait.Value;
+        internal static bool noWait => vcConfig.noWait.Value || Input.GetKeyDown(KeyCode.LeftControl);
         internal static bool enableVoice => vcConfig.enableVoice.Value;
         internal static bool enableSe => vcConfig.enableSe.Value;
 
         private void Awake()
         {
-            vcConfig = new(Config);
+            vcConfig = new VoiceChangerConfig(Config);
             voiceChanger.SetServerUrl(vcConfig.serverUrl.Value);
+            voiceChanger.SetPreloaderType(vcConfig.preloaderT.Value);
             vcConfig.serverUrl.SettingChanged += (s, e) => voiceChanger.SetServerUrl(vcConfig.serverUrl.Value);
+            vcConfig.preloaderT.SettingChanged += (s, e) => voiceChanger.SetPreloaderType(vcConfig.preloaderT.Value);
             Instance = this;
             Harmony.CreateAndPatchAll(typeof(Main));
         }
@@ -83,7 +85,7 @@ namespace COM3D2.VoiceChanger.Plugin
         public static bool LoadPlayPrefix(ref AudioSourceMgr __instance, ref bool __result, AFileSystemBase fileSystem, string fileName, bool stream)
         {
             // var voiceType = __instance.m_eType;
-            var audioClip = voiceChanger.getVoiceClip(fileName, !noWait);
+            var audioClip = voiceChanger.getVoiceClip(fileName, !noWait, timeout);
             if (audioClip != null)
             {
                 Logger.LogDebug($"replace: {fileName}");

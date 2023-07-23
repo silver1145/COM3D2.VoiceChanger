@@ -5,6 +5,13 @@ using System.Threading;
 
 namespace COM3D2.VoiceChanger.Plugin.Utils
 {
+    /// <summary>
+    /// Ordered Thread-safe Dictionary
+    /// <para>The earliest element will be discarded When exceeding maxLength (>0)</para>
+    /// <para>Add / Get existing element will move to the end</para>
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TValue"></typeparam>
     internal class CacheDictionary<TKey, TValue>
     {
         private readonly int maxLength;
@@ -12,7 +19,7 @@ namespace COM3D2.VoiceChanger.Plugin.Utils
         private readonly Queue<TKey> queue;
         private readonly ReaderWriterLockSlim lockSlim;
 
-        public CacheDictionary(int maxLength)
+        public CacheDictionary(int maxLength = 0)
         {
             this.maxLength = maxLength;
             dictionary = new Dictionary<TKey, TValue>();
@@ -25,12 +32,31 @@ namespace COM3D2.VoiceChanger.Plugin.Utils
             lockSlim.EnterWriteLock();
             try
             {
-                if (dictionary.Count >= maxLength)
+                if (maxLength > 0 && dictionary.Count >= maxLength && !dictionary.ContainsKey(key))
                 {
                     TKey oldestKey = queue.Dequeue();
                     dictionary.Remove(oldestKey);
                 }
-
+                if (dictionary.ContainsKey(key))
+                {
+                    var existingItem = queue.FirstOrDefault(x => EqualityComparer<TKey>.Default.Equals(x, key));
+                    if (existingItem != null)
+                    {
+                        var tempItems = new Queue<TKey>();
+                        while (queue.Count > 0)
+                        {
+                            var currentItem = queue.Dequeue();
+                            if (!EqualityComparer<TKey>.Default.Equals(currentItem, key))
+                            {
+                                tempItems.Enqueue(currentItem);
+                            }
+                        }
+                        foreach (var tempItem in tempItems)
+                        {
+                            queue.Enqueue(tempItem);
+                        }
+                    }
+                }
                 dictionary[key] = value;
                 queue.Enqueue(key);
             }

@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using COM3D2.VoiceChanger.Plugin.Preloader;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace COM3D2.VoiceChanger.Plugin
         internal ConfigEntry<string> serverUrl;
         internal ConfigEntry<int> inferTimeout;
         internal ConfigEntry<bool> noWait;
+        internal ConfigEntry<PreloaderType> preloaderT;
         internal ConfigEntry<bool> enableVoice;
         internal ConfigEntry<bool> enableSe;
 
@@ -19,7 +21,7 @@ namespace COM3D2.VoiceChanger.Plugin
             serverUrl = Config.Bind("Connection Setting", "ServerUrl", "ws://127.0.0.1:11451/infer/ws", "Infer Server Url");
             inferTimeout = Config.Bind("Infer Setting", "Timeout", 100000, "Infer Timeout (ms)");
             noWait = Config.Bind("Infer Setting", "NoWait", false, "Ignore Unreceived Voice");
-            // TODO: Preloader
+            preloaderT = Config.Bind("Infer Setting", "Preloader Type", PreloaderType.LinerPreloader, "Ignore Unreceived Voice");
             enableVoice = Config.Bind("Type Filter", "Voice", true, "Enable Voice Infer");
             enableSe = Config.Bind("Type Filter", "Se", true, "Enable Se Infer");
         }

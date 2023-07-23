@@ -8,14 +8,15 @@ using WebSocketSharp;
 
 namespace COM3D2.VoiceChanger.Plugin.Infer
 {
-    public delegate void VoiceDataCallback(Voice_Data data);
+    internal delegate void VoiceDataCallback(Voice_Data data);
 
-    internal class WSConnection: IDisposable
+    internal class WSConnection : IDisposable
     {
         private WebSocket ws;
         private Timer reconnectTimer;
         private string _url;
         private bool hasConnected = false;
+        private bool disposedValue = false;
         public event VoiceDataCallback Callback;
         private bool _isConnected => (!ws.IsNullOrDestroyed() && ws.IsAlive);
         public bool isConnected { get; private set; } = false;
@@ -45,6 +46,11 @@ namespace COM3D2.VoiceChanger.Plugin.Infer
                     Connect(_url);
                 }
             }, null, 0, 3000);
+        }
+
+        ~WSConnection()
+        {
+            Dispose(false);
         }
 
         private void Connect(string url)
@@ -132,10 +138,23 @@ namespace COM3D2.VoiceChanger.Plugin.Infer
             }
         }
 
+        private void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    reconnectTimer.Dispose();
+                }
+                disposedValue = true;
+                ws.Close();
+            }
+        }
+
         public void Dispose()
         {
-            reconnectTimer.Dispose();
-            ws.Close();
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

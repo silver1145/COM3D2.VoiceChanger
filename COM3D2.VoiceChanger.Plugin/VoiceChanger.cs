@@ -1,5 +1,7 @@
 ﻿using COM3D2.VoiceChanger.Plugin.Infer;
+using COM3D2.VoiceChanger.Plugin.Preloader;
 using COM3D2.VoiceChanger.Plugin.Utils;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -13,6 +15,8 @@ namespace COM3D2.VoiceChanger.Plugin
         private CacheDictionary<string, AudioClip> cacheAudioClip;
         private CacheHashSet<string> voiceWait;
         private InferClient inferClient;
+        private BasePreloader preloader;
+        private object preloaderLock;
 
         public VoiceChanger()
         {
@@ -20,6 +24,8 @@ namespace COM3D2.VoiceChanger.Plugin
             voiceWait = new CacheHashSet<string>();
             inferClient = new InferClient();
             inferClient.Callback += HandleVoice;
+            preloader = new LinerPreloader(cacheSize, voiceWait, inferClient.Send);
+            preloaderLock = new object();
         }
 
         public bool CheckPrepared(string voice)
@@ -49,10 +55,49 @@ namespace COM3D2.VoiceChanger.Plugin
             inferClient.SetServerUrl(url);
         }
 
-        public void LoadVoice(string voice, bool cancelAll = false)
+        public void SetPreloaderType(PreloaderType preloaderType)
         {
-            // TODO: Cancel all before
+            if (preloaderType == null && preloaderType == PreloaderType.NonePreloader)
+            {
+                return;
+            }
+            else if (preloaderType != null && preloader.preloaderType == preloaderType)
+            {
+                return;
+            }
+            else if (preloaderType != null)
+            {
+                lock (preloaderLock)
+                {
+                    preloader.Dispose();
+                    preloader = null;
+                }
+            }
+            lock (preloaderLock)
+            {
+                    
+                switch (preloaderType)
+                {
+                    case PreloaderType.NonePreloader:
+                        break;
+                    case PreloaderType.LinerPreloader:
+                        preloader = new LinerPreloader(cacheSize, voiceWait, inferClient.Send);
+                        break;
+                    // TODO: Other Preloader
+                }
+            }
+        }
+
+        public void LoadVoice(string voice)
+        {
             string oggFileName = Path.ChangeExtension(voice, ".ogg").ToLower();
+            lock (preloaderLock)
+            {
+                if (preloader != null)
+                {
+                    preloader.Preload(oggFileName);
+                }
+            }
             if (!voiceWait.Contains(oggFileName) && !cacheAudioClip.ContainsKey(oggFileName))
             {
                 inferClient.SendVoice(oggFileName);
@@ -60,7 +105,7 @@ namespace COM3D2.VoiceChanger.Plugin
             }
         }
 
-        public AudioClip getVoiceClip(string voice, bool wait = true)
+        public AudioClip getVoiceClip(string voice, bool wait = true, int timeout = 0)
         {
             string oggFileName = Path.GetFileNameWithoutExtension(voice).ToLower() + ".ogg";
             if (cacheAudioClip.TryGetValue(oggFileName, out AudioClip audioClip))
@@ -69,9 +114,15 @@ namespace COM3D2.VoiceChanger.Plugin
             }
             else if (voiceWait.Contains(oggFileName))
             {
+                int lastTime = 0;
                 while (!cacheAudioClip.ContainsKey(oggFileName) && wait)
                 {
                     Thread.Sleep(100);
+                    lastTime += 100;
+                    if (timeout > 0 && lastTime > timeout)
+                    {
+                        return null;
+                    }
                 }
                 return cacheAudioClip.Get(oggFileName);
             }
@@ -80,10 +131,8 @@ namespace COM3D2.VoiceChanger.Plugin
 
         private void HandleVoice(Voice_Data inferVoice)
         {
-            if (voiceWait.Remove(inferVoice.name))
-            {
-                cacheAudioClip.Add(inferVoice.name, OGGParser.FromVoiceData(inferVoice));
-            }
+            voiceWait.Remove(inferVoice.name);
+            cacheAudioClip.Add(inferVoice.name, OGGParser.FromVoiceData(inferVoice));
         }
     }
 }
