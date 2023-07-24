@@ -44,7 +44,7 @@ namespace COM3D2.VoiceChanger.Plugin
         //config
         internal static VoiceChangerConfig vcConfig;
         internal static int timeout => vcConfig.inferTimeout.Value;
-        internal static bool noWait => vcConfig.noWait.Value || Input.GetKeyDown(KeyCode.LeftControl);
+        internal static bool noWait => vcConfig.noWait.Value || Input.GetKey(KeyCode.LeftControl);
         internal static bool enableVoice => vcConfig.enableVoice.Value;
         internal static bool enableSe => vcConfig.enableSe.Value;
         internal static KeyCode guiKey => vcConfig.guiKey.Value;
