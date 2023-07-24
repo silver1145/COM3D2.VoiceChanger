@@ -13,6 +13,7 @@ namespace COM3D2.VoiceChanger.Plugin.Infer
     {
         private WSConnection wsConnection;
         public event VoiceReceiveCallback Callback;
+        public bool connected => wsConnection.isConnected;
 
         public InferClient()
         {

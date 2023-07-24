@@ -48,7 +48,7 @@ namespace COM3D2.VoiceChanger.Plugin.Preloader
         protected override List<Base_Data> Predict(string oggFilename)
         {
             List<Base_Data> result = new List<Base_Data>();
-            if (!preloadHistory.Contains(oggFilename))
+            if (!preloadHistory.Contains(oggFilename) && preloadHistory.Any())
             {
                 Main.Logger.LogDebug($"Preload Cancelled");
                 Command_Data commandd = new("cancel");

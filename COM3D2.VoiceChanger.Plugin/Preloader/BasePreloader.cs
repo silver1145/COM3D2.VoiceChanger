@@ -214,7 +214,7 @@ namespace COM3D2.VoiceChanger.Plugin.Preloader
 
         public void Run()
         {
-            List<Base_Data>? data = predictFunc?.Invoke();
+            List<Base_Data> data = predictFunc?.Invoke();
             if (data != null && data.Any() && !cancel)
             {
                 resultCallback?.Invoke(data);

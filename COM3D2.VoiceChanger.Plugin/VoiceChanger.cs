@@ -17,6 +17,8 @@ namespace COM3D2.VoiceChanger.Plugin
         private InferClient inferClient;
         private BasePreloader preloader;
         private object preloaderLock;
+        public int cacheCount => cacheAudioClip.Count();
+        public bool connected => inferClient.connected;
 
         public VoiceChanger()
         {
@@ -57,15 +59,15 @@ namespace COM3D2.VoiceChanger.Plugin
 
         public void SetPreloaderType(PreloaderType preloaderType)
         {
-            if (preloaderType == null && preloaderType == PreloaderType.NonePreloader)
+            if (preloader == null && preloaderType == PreloaderType.NonePreloader)
             {
                 return;
             }
-            else if (preloaderType != null && preloader.preloaderType == preloaderType)
+            else if (preloader != null && preloaderType == preloader.preloaderType)
             {
                 return;
             }
-            else if (preloaderType != null)
+            else if (preloader != null)
             {
                 lock (preloaderLock)
                 {
@@ -91,17 +93,17 @@ namespace COM3D2.VoiceChanger.Plugin
         public void LoadVoice(string voice)
         {
             string oggFileName = Path.ChangeExtension(voice, ".ogg").ToLower();
+            if (!voiceWait.Contains(oggFileName) && !cacheAudioClip.ContainsKey(oggFileName))
+            {
+                inferClient.SendVoice(oggFileName);
+                voiceWait.Add(oggFileName);
+            }
             lock (preloaderLock)
             {
                 if (preloader != null)
                 {
                     preloader.Preload(oggFileName);
                 }
-            }
-            if (!voiceWait.Contains(oggFileName) && !cacheAudioClip.ContainsKey(oggFileName))
-            {
-                inferClient.SendVoice(oggFileName);
-                voiceWait.Add(oggFileName);
             }
         }
 

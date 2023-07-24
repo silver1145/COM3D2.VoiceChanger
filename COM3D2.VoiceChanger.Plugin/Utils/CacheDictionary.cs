@@ -165,6 +165,19 @@ namespace COM3D2.VoiceChanger.Plugin.Utils
             }
         }
 
+        public int Count()
+        {
+            lockSlim.EnterReadLock();
+            try
+            {
+                return dictionary.Count;
+            }
+            finally
+            {
+                lockSlim.ExitReadLock();
+            }
+        }
+
         public void Clear()
         {
             lockSlim.EnterWriteLock();

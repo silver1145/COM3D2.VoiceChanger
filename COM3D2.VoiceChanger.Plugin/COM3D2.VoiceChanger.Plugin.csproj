@@ -10,8 +10,8 @@
     <OutputType>Library</OutputType>
     <PlatformTarget>x64</PlatformTarget>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>COM3D2.COM3D2.VoiceChanger.Plugin</RootNamespace>
-    <AssemblyName>COM3D2.COM3D2.VoiceChanger.Plugin.Plugin</AssemblyName>
+    <RootNamespace>COM3D2.VoiceChanger.Plugin</RootNamespace>
+    <AssemblyName>COM3D2.VoiceChanger.Plugin</AssemblyName>
     <LangVersion>latest</LangVersion>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

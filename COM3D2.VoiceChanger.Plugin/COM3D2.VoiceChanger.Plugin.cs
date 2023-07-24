@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
+using UnityEngine.UI;
 
 [assembly: AssemblyVersion(COM3D2.VoiceChanger.Plugin.PluginInfo.PLUGIN_VERSION + ".*")]
 [module: UnverifiableCode]
@@ -46,6 +47,18 @@ namespace COM3D2.VoiceChanger.Plugin
         internal static bool noWait => vcConfig.noWait.Value || Input.GetKeyDown(KeyCode.LeftControl);
         internal static bool enableVoice => vcConfig.enableVoice.Value;
         internal static bool enableSe => vcConfig.enableSe.Value;
+        internal static KeyCode guiKey => vcConfig.guiKey.Value;
+        
+        // UI
+        private static bool showGUI = false;
+        private GUIStyle colorStyle;
+        private const int WIDTH = 200;
+        private const int HEIGHT = 150;
+        private const int MARGIN_X = 5;
+        private const int MARGIN_TOP = 20;
+        private const int MARGIN_BOTTOM = 5;
+        // Temp Switch
+        private static bool pluginEnabled = true;
 
         private void Awake()
         {
@@ -60,6 +73,10 @@ namespace COM3D2.VoiceChanger.Plugin
 
         private void Update()
         {
+            if (Input.GetKeyDown(guiKey))
+            {
+                showGUI = !showGUI;
+            }
             // Wait Check per 100 ms, Cannot Work lower than 10 FPS
             if (!noWait && isWait)
             {
@@ -80,15 +97,67 @@ namespace COM3D2.VoiceChanger.Plugin
             }
         }
 
+        private void OnGUI()
+        {
+            if (!showGUI)
+            {
+                return;
+            }
+            if (colorStyle == null)
+            {
+                colorStyle = new GUIStyle();
+            }
+
+
+            void Window(int id)
+            {
+                GUILayout.BeginArea(new Rect(MARGIN_X, MARGIN_TOP, WIDTH - MARGIN_X * 2, HEIGHT - MARGIN_TOP - MARGIN_BOTTOM));
+                {
+                    GUILayout.BeginVertical();
+                    {
+                        GUILayout.Label("");
+                        if (voiceChanger.connected)
+                        {
+                            colorStyle.normal.textColor = Color.green;
+                            GUILayout.Label("Service Connected", colorStyle);
+                        }
+                        else
+                        {
+                            colorStyle.normal.textColor = Color.red;
+                            GUILayout.Label("Service Disconnected", colorStyle);
+                        }
+                        pluginEnabled = GUILayout.Toggle(pluginEnabled, "Enabled");
+                        GUILayout.Label($"Cache Num: {voiceChanger.cacheCount}");
+
+                        if (GUILayout.Button("Clean Cache"))
+                        {
+                            voiceChanger.ClearCache();
+                        }
+
+                        GUI.enabled = true;
+                    }
+                    GUILayout.EndVertical();
+                }
+                GUILayout.EndArea();
+            }
+
+            GUI.Window(11451, new Rect(0, (Screen.height - HEIGHT) / 2f, WIDTH, HEIGHT), Window, "VoiceChanger Status");
+        }
+
         [HarmonyPatch(typeof(AudioSourceMgr), "LoadFromWf")]
         [HarmonyPrefix]
         public static bool LoadPlayPrefix(ref AudioSourceMgr __instance, ref bool __result, AFileSystemBase fileSystem, string fileName, bool stream)
         {
+            if (!pluginEnabled)
+            {
+                return true;
+            }
             // var voiceType = __instance.m_eType;
+
             var audioClip = voiceChanger.getVoiceClip(fileName, !noWait, timeout);
             if (audioClip != null)
             {
-                Logger.LogDebug($"replace: {fileName}");
+                Logger.LogDebug($"Replace: {fileName}");
                 __instance.Clear();
                 __instance.FileName = fileName;
                 __instance.isLastPlayCompatibilityMode = __instance.m_gcSoundMgr.compatibilityMode;
@@ -104,6 +173,10 @@ namespace COM3D2.VoiceChanger.Plugin
         [HarmonyPrefix]
         public static void TagTalkPrefix(KagTagSupport tag_data)
         {
+            if (!pluginEnabled)
+            {
+                return;
+            }
             string voice = tag_data.GetTagProperty("voice").AsString();
             if (!voice.IsNullOrWhiteSpace() && enableVoice)
             {
@@ -128,6 +201,10 @@ namespace COM3D2.VoiceChanger.Plugin
         [HarmonyPostfix]
         public static void TagTalkPostfix(KagTagSupport tag_data, ref ADVKagManager __instance, ref bool __result)
         {
+            if (!pluginEnabled)
+            {
+                return;
+            }
             string voice = tag_data.GetTagProperty("voice").AsString();
             if (!voice.IsNullOrWhiteSpace() && enableVoice && !noWait)
             {
@@ -145,6 +222,10 @@ namespace COM3D2.VoiceChanger.Plugin
         [HarmonyPrefix]
         public static void TagPlayVoicePrefix(KagTagSupport tag_data)
         {
+            if (!pluginEnabled)
+            {
+                return;
+            }
             string voice = tag_data.GetTagProperty("voice").AsString();
             if (!voice.IsNullOrWhiteSpace() && enableVoice)
             {
@@ -157,6 +238,10 @@ namespace COM3D2.VoiceChanger.Plugin
         [HarmonyPrefix]
         public static void TagPlaySePrefix(KagTagSupport tag_data)
         {
+            if (!pluginEnabled)
+            {
+                return;
+            }
             string file = tag_data.GetTagProperty("file").AsString();
             if (!file.IsNullOrWhiteSpace() && enableSe)
             {
