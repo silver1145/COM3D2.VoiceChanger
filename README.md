@@ -18,9 +18,9 @@ Unzip to `game root directory/BepinEx/plugins/`
 
 ## Introduction
 
-The plugin uses a preloader to predict voice, currently only LinerPreloader, and a predictor based on a graph database may be implemented in the future.
+The plugin uses a preloader to predict voice, currently only LinearPreloader, and a predictor based on a graph database may be implemented in the future.
 
 * Preloader
-  * [x] LinerPreloader
+  * [x] LinearPreloader
   * [ ] GraphDBPreloader
   * [ ] KagPreloader

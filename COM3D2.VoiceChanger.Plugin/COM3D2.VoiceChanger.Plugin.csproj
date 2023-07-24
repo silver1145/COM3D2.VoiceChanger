@@ -90,7 +90,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Preloader\BasePreloader.cs" />
-    <Compile Include="Preloader\LinerPreloader.cs" />
+    <Compile Include="Preloader\LinearPreloader.cs" />
     <Compile Include="Utils\CacheHashSet.cs" />
     <Compile Include="VoiceChangerConfig.cs" />
     <Compile Include="Infer\InferClient.cs" />

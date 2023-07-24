@@ -26,7 +26,7 @@ namespace COM3D2.VoiceChanger.Plugin
             voiceWait = new CacheHashSet<string>();
             inferClient = new InferClient();
             inferClient.Callback += HandleVoice;
-            preloader = new LinerPreloader(cacheSize, voiceWait, inferClient.Send);
+            preloader = new LinearPreloader(cacheSize, voiceWait, inferClient.Send);
             preloaderLock = new object();
         }
 
@@ -83,7 +83,7 @@ namespace COM3D2.VoiceChanger.Plugin
                     case PreloaderType.NonePreloader:
                         break;
                     case PreloaderType.LinerPreloader:
-                        preloader = new LinerPreloader(cacheSize, voiceWait, inferClient.Send);
+                        preloader = new LinearPreloader(cacheSize, voiceWait, inferClient.Send);
                         break;
                     // TODO: Other Preloader
                 }
