@@ -8,14 +8,14 @@ using System.Text.RegularExpressions;
 
 namespace COM3D2.VoiceChanger.Plugin.Preloader
 {
-    internal class LinerPreloader : BasePreloader
+    internal class LinearPreloader : BasePreloader
     {
-        public LinerPreloader(int cacheSize, CacheHashSet<string> wait, PreloadResultCallback callback) : base(cacheSize, wait, callback)
+        public LinearPreloader(int cacheSize, CacheHashSet<string> wait, PreloadResultCallback callback) : base(cacheSize, wait, callback)
         {
             preloaderType = PreloaderType.LinerPreloader;
         }
 
-        ~LinerPreloader()
+        ~LinearPreloader()
         {
             Dispose(false);
         }
