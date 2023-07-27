@@ -45,8 +45,8 @@ namespace COM3D2.VoiceChanger.Plugin
         internal static VoiceChangerConfig vcConfig;
         internal static int timeout => vcConfig.inferTimeout.Value;
         internal static bool noWait => vcConfig.noWait.Value || Input.GetKey(KeyCode.LeftControl) || !voiceChanger.connected;
-        internal static bool enableVoice => vcConfig.enableVoice.Value;
-        internal static bool enableSe => vcConfig.enableSe.Value;
+        internal static bool enableNormal => vcConfig.enableNormal.Value;
+        internal static bool enableYotogi => vcConfig.enableYotogi.Value;
         internal static KeyCode guiKey => vcConfig.guiKey.Value;
         
         // UI
@@ -169,22 +169,6 @@ namespace COM3D2.VoiceChanger.Plugin
             return true;
         }
 
-        [HarmonyPatch(typeof(ADVKagManager), "TagTalk")]
-        [HarmonyPrefix]
-        public static void TagTalkPrefix(KagTagSupport tag_data)
-        {
-            if (!pluginEnabled)
-            {
-                return;
-            }
-            string voice = tag_data.GetTagProperty("voice").AsString();
-            if (!voice.IsNullOrWhiteSpace() && enableVoice)
-            {
-                voiceChanger.LoadVoice(voice);
-                Logger.LogDebug($"@talk voice={voice}");
-            }
-        }
-
         [HarmonyPatch(typeof(BaseKagManager.ExecWaitData), "Check")]
         [HarmonyPrefix]
         public static bool CheckPrefix(BaseKagManager.ExecWaitData __instance, ref bool __result)
@@ -198,17 +182,72 @@ namespace COM3D2.VoiceChanger.Plugin
         }
 
         [HarmonyPatch(typeof(ADVKagManager), "TagTalk")]
-        [HarmonyPostfix]
-        public static void TagTalkPostfix(KagTagSupport tag_data, ref ADVKagManager __instance, ref bool __result)
+        [HarmonyPrefix]
+        public static void ADVTagTalkPrefix(KagTagSupport tag_data)
         {
             if (!pluginEnabled)
             {
                 return;
             }
             string voice = tag_data.GetTagProperty("voice").AsString();
-            if (!voice.IsNullOrWhiteSpace() && enableVoice && !noWait)
+            //avoid repeat load when TagTalk run twice
+            if (!voice.IsNullOrWhiteSpace() && enableNormal && voice != curVoice)
+            {
+                voiceChanger.LoadVoice(voice);
+                Logger.LogDebug($"ADVKagManager: @talk voice={voice}");
+            }
+        }
+
+        [HarmonyPatch(typeof(ADVKagManager), "TagTalk")]
+        [HarmonyPostfix]
+        public static void ADVTagTalkPostfix(KagTagSupport tag_data, ref BaseKagManager __instance, ref bool __result)
+        {
+            if (!pluginEnabled)
+            {
+                return;
+            }
+            string voice = tag_data.GetTagProperty("voice").AsString();
+            if (!voice.IsNullOrWhiteSpace() && enableNormal && !noWait && voice != curVoice)
             {
                 string oggFileName = Path.GetFileNameWithoutExtension(voice).ToLower() + ".ogg";
+                if (GameUty.FileSystem.IsExistentFile(oggFileName))
+                {
+                    __result = __instance.SetWait(200, false);
+                    curWaitData = __instance.exec_wait_data_;
+                    curVoice = voice;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(YotogiKagManager), "TagTalk")]
+        [HarmonyPrefix]
+        public static void YotogiTagTalkPrefix(KagTagSupport tag_data)
+        {
+            if (!pluginEnabled)
+            {
+                return;
+            }
+            string voice = tag_data.GetTagProperty("voice").AsString();
+            if (!voice.IsNullOrWhiteSpace() && enableYotogi && voice != curVoice)
+            {
+                voiceChanger.LoadVoice(voice);
+                Logger.LogDebug($"YotogiKagManager: @talk voice={voice}");
+            }
+        }
+
+        [HarmonyPatch(typeof(YotogiKagManager), "TagTalk")]
+        [HarmonyPostfix]
+        public static void YotogiTagTalkPostfix(KagTagSupport tag_data, ref BaseKagManager __instance, ref bool __result)
+        {
+            if (!pluginEnabled)
+            {
+                return;
+            }
+            string voice = tag_data.GetTagProperty("voice").AsString();
+            if (!voice.IsNullOrWhiteSpace() && enableYotogi && !noWait && voice != curVoice)
+            {
+                string oggFileName = Path.GetFileNameWithoutExtension(voice).ToLower() + ".ogg";
+                // Wait won't work, only for avoid repeat load
                 if (GameUty.FileSystem.IsExistentFile(oggFileName))
                 {
                     __result = __instance.SetWait(200, false);
@@ -227,26 +266,10 @@ namespace COM3D2.VoiceChanger.Plugin
                 return;
             }
             string voice = tag_data.GetTagProperty("voice").AsString();
-            if (!voice.IsNullOrWhiteSpace() && enableVoice)
+            if (!voice.IsNullOrWhiteSpace() && enableNormal)
             {
                 voiceChanger.LoadVoice(voice);
                 Logger.LogDebug($"@playvoice voice={voice}");
-            }
-        }
-
-        [HarmonyPatch(typeof(BaseKagManager), "TagPlaySe")]
-        [HarmonyPrefix]
-        public static void TagPlaySePrefix(KagTagSupport tag_data)
-        {
-            if (!pluginEnabled)
-            {
-                return;
-            }
-            string file = tag_data.GetTagProperty("file").AsString();
-            if (!file.IsNullOrWhiteSpace() && enableSe)
-            {
-                voiceChanger.LoadVoice(file);
-                Logger.LogDebug($"@playse file={file}");
             }
         }
     }

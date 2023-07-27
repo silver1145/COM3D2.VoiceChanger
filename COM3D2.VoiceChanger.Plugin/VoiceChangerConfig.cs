@@ -15,8 +15,8 @@ namespace COM3D2.VoiceChanger.Plugin
         internal ConfigEntry<bool> noWait;
         internal ConfigEntry<PreloaderType> preloaderT;
         internal ConfigEntry<KeyCode> guiKey;
-        internal ConfigEntry<bool> enableVoice;
-        internal ConfigEntry<bool> enableSe;
+        internal ConfigEntry<bool> enableNormal;
+        internal ConfigEntry<bool> enableYotogi;
 
         public VoiceChangerConfig(ConfigFile Config)
         {
@@ -25,8 +25,8 @@ namespace COM3D2.VoiceChanger.Plugin
             noWait = Config.Bind("Infer Setting", "NoWait", false, "Ignore Unreceived Voice");
             preloaderT = Config.Bind("Infer Setting", "Preloader Type", PreloaderType.LinerPreloader, "Preloader Type");
             guiKey = Config.Bind("Infer Setting", "GUI Key", KeyCode.V, "Key to Enable GUI");
-            enableVoice = Config.Bind("Type Filter", "Voice", true, "Enable Voice Infer");
-            enableSe = Config.Bind("Type Filter", "Se", true, "Enable Se Infer");
+            enableNormal = Config.Bind("Type Filter", "Normal", true, "Enable Normal Voice Infer");
+            enableYotogi = Config.Bind("Type Filter", "Yotogi", true, "Enable Yotogi Voice Infer");
         }
     }
 }

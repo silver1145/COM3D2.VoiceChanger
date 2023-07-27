@@ -53,8 +53,10 @@ namespace COM3D2.VoiceChanger.Plugin.Preloader
                 Main.Logger.LogDebug($"Preload Cancelled");
                 Command_Data commandd = new("cancel");
                 result.Add(commandd);
+                Voice_Data voiceData = new(oggFilename);
+                result.Add(voiceData);
             }
-            foreach(string file in IncrementNumericSuffix(oggFilename))
+            foreach (string file in IncrementNumericSuffix(oggFilename))
             {
                 if (GameUty.FileSystem.IsExistentFile(file) && !preloadHistory.Contains(file))
                 {
