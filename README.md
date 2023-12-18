@@ -4,7 +4,7 @@ Allows the game to change the voice of the voice. Use WebSocket to interact with
 
 ## Install
 
-Download from [release](https://github.com/silver1145/COM3D2.VoiceChanger.Plugin/releases)
+Download from [release](https://github.com/silver1145/COM3D2.VoiceChanger/releases)
 Unzip to `game root directory/BepinEx/plugins/`
 
 ## Use
