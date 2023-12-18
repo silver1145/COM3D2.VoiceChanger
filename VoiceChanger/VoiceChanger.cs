@@ -109,7 +109,7 @@ namespace COM3D2.VoiceChanger.Plugin
 
         public AudioClip getVoiceClip(string voice, bool wait = true, int timeout = 0)
         {
-            string oggFileName = Path.GetFileNameWithoutExtension(voice).ToLower() + ".ogg";
+            string oggFileName = Path.ChangeExtension(voice, ".ogg").ToLower();
             if (cacheAudioClip.TryGetValue(oggFileName, out AudioClip audioClip))
             {
                 return audioClip;

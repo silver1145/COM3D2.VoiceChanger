@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using System.IO;
@@ -7,7 +6,6 @@ using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
-using UnityEngine.UI;
 
 [assembly: AssemblyVersion(COM3D2.VoiceChanger.Plugin.PluginInfo.PLUGIN_VERSION + ".*")]
 [module: UnverifiableCode]
@@ -209,7 +207,7 @@ namespace COM3D2.VoiceChanger.Plugin
             string voice = tag_data.GetTagProperty("voice").AsString();
             if (!voice.IsNullOrWhiteSpace() && enableNormal && !noWait && voice != curVoice)
             {
-                string oggFileName = Path.GetFileNameWithoutExtension(voice).ToLower() + ".ogg";
+                string oggFileName = Path.ChangeExtension(voice, ".ogg").ToLower();
                 if (GameUty.FileSystem.IsExistentFile(oggFileName))
                 {
                     __result = __instance.SetWait(200, false);
@@ -246,7 +244,7 @@ namespace COM3D2.VoiceChanger.Plugin
             string voice = tag_data.GetTagProperty("voice").AsString();
             if (!voice.IsNullOrWhiteSpace() && enableYotogi && !noWait && voice != curVoice)
             {
-                string oggFileName = Path.GetFileNameWithoutExtension(voice).ToLower() + ".ogg";
+                string oggFileName = Path.ChangeExtension(voice, ".ogg").ToLower();
                 // Wait won't work, only for avoid repeat load
                 if (GameUty.FileSystem.IsExistentFile(oggFileName))
                 {

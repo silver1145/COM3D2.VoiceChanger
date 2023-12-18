@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "COM3D2.VoiceChanger.Plugin", "COM3D2.VoiceChanger.Plugin\COM3D2.VoiceChanger.Plugin.csproj", "{EB2400D7-F2E0-4960-B100-62E370D8F87A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoiceChanger", "VoiceChanger\VoiceChanger.csproj", "{EB2400D7-F2E0-4960-B100-62E370D8F87A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

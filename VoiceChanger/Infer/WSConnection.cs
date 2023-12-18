@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using UniverseLib.Utility;
 using WebSocketSharp;
 
 namespace COM3D2.VoiceChanger.Plugin.Infer
@@ -18,7 +17,7 @@ namespace COM3D2.VoiceChanger.Plugin.Infer
         private bool hasConnected = false;
         private bool disposedValue = false;
         public event VoiceDataCallback Callback;
-        private bool _isConnected => (!ws.IsNullOrDestroyed() && ws.IsAlive);
+        private bool _isConnected => (ws != null && ws.IsAlive);
         public bool isConnected { get; private set; } = false;
         public string url
         {

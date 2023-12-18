@@ -55,7 +55,6 @@
     <PackageReference Include="UniverseLib.Analyzers" Version="1.0.3" targetFramework="net35" developmentDependency="true">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="UniverseLib.Mono" Version="1.3.3" targetFramework="net35" />
     <PackageReference Include="WebSocketSharp">
       <Version>1.0.3-rc11</Version>
     </PackageReference>
