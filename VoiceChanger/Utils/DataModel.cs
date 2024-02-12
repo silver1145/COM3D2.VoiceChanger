@@ -28,9 +28,11 @@ namespace COM3D2.VoiceChanger.Plugin.Utils
         {
             type = "voice";
             this.name = name;
-            var f = GameUty.FileOpen(name);
-            string base64File = Convert.ToBase64String(f.ReadAll());
-            this.file = base64File;
+            using (var f = GameUty.FileOpen(name))
+            {
+                string base64File = Convert.ToBase64String(f.ReadAll());
+                this.file = base64File;
+            }
         }
     }
 

@@ -38,7 +38,7 @@
     <RestoreSources>$(RestoreSources);https://api.nuget.org/v3/index.json;https://nuget.bepinex.dev/v3/index.json</RestoreSources>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="COM3D2.GameLibs" Version="3.25.2-r.0" targetFramework="net35" />
+    <PackageReference Include="COM3D2.GameLibs" Version="2.31.0-r.0" targetFramework="net35" />
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.3</Version>
     </PackageReference>
